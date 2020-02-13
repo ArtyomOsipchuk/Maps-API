@@ -46,6 +46,18 @@ while running:
             if spn[0] - 0.5 >= 0.0017:
                 spn = (spn[0] - 0.5, spn[1] - 0.5)
                 render()
+        if keys[pygame.K_RIGHT]:
+            coords = (coords[0] + 0.5, coords[1])
+            render()
+        if keys[pygame.K_UP]:
+            coords = (coords[0], coords[1] + 0.5)
+            render()
+        if keys[pygame.K_DOWN]:
+            coords = (coords[0], coords[1] - 0.5)
+            render()
+        if keys[pygame.K_LEFT]:
+            coords = (coords[0] - 0.5, coords[1])
+            render()
     pygame.display.flip()
 pygame.quit()
 os.remove(map_file)
