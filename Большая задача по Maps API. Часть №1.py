@@ -1,6 +1,6 @@
 import pygame
 import requests
-
+import os
 
 def render():
     global spn, coords, map_file
