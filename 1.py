@@ -5,7 +5,7 @@ import pygame
 import requests
 
 response = None
-map_request = "http://static-maps.yandex.ru/1.x/?ll=37.624810%2C55.749440&&spn=0.030813%2C0.009851&l=map"
+map_request = "http://static-maps.yandex.ru/1.x/?ll=37.530887,55.703118&spn=0.002,0.002&l=map"
 response = requests.get(map_request)
 
 if not response:
