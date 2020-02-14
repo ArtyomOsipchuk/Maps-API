@@ -50,11 +50,13 @@ while running:
             coords = (coords[0] + 0.5, coords[1])
             render()
         if keys[pygame.K_UP]:
-            coords = (coords[0], coords[1] + 0.5)
-            render()
+            if coords[1] + 0.5 <= 84.836623:
+                coords = (coords[0], coords[1] + 0.5)
+                render()
         if keys[pygame.K_DOWN]:
-            coords = (coords[0], coords[1] - 0.5)
-            render()
+            if coords[1] + 0.5 >= -85.052864:
+                coords = (coords[0], coords[1] - 0.5)
+                render()
         if keys[pygame.K_LEFT]:
             coords = (coords[0] - 0.5, coords[1])
             render()
