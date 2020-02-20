@@ -5,10 +5,23 @@ import pygame
 import requests
 
 
+def get_click(coords):
+    global l
+    print(coords)
+    x, y = coords
+    if 0 < y < 25:
+        if 450 < x < 500:
+            l = 'map'
+        if 500 < x < 550:
+            l = 'sat'
+        if 550 < x < 600:
+            l = 'sat,skl'
+
+
 def render():
-    global spn, coords, map_file
+    global spn, coords, map_file, l
     response = None
-    map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(str(i) for i in coords)}&spn={','.join(str(i) for i in spn)}&l=map"
+    map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(str(i) for i in coords)}&spn={','.join(str(i) for i in spn)}&l={l}"
     response = requests.get(map_request)
 
     if not response:
@@ -25,11 +38,27 @@ def render():
     # Рисуем картинку, загружаемую из только что созданного файла.
     screen.blit(pygame.image.load(map_file), (0, 0))
     # Переключаем экран и ждем закрытия окна.
+    pygame.draw.rect(screen, pygame.Color(0, 0, 0), ((450, 0), (600, 25)), 0)
+    pygame.draw.rect(screen, pygame.Color(255, 255, 255), ((450, 0), (500, 25)), 1)
+    pygame.draw.rect(screen, pygame.Color(255, 255, 255), ((500, 0), (550, 25)), 1)
+    pygame.draw.rect(screen, pygame.Color(255, 255, 255), ((550, 0), (600, 25)), 1)
+    pygame.font.init()
+    font = pygame.font.Font(None, 25)
+    text = font.render("map", 1, (255, 255, 255))
+    screen.blit(text, (455, 5))
+    font = pygame.font.Font(None, 25)
+    text = font.render("sat", 1, (255, 255, 255))
+    screen.blit(text, (510, 5))
+    font = pygame.font.Font(None, 25)
+    text = font.render("hyb", 1, (255, 255, 255))
+    screen.blit(text, (555, 5))
+    screen.convert_alpha()
     pygame.display.flip()
 
 
 spn = (0.002, 0.002)
 coords = (37.530887, 55.703118)
+l = 'map'
 render()
 pygame.init()
 running = True
@@ -59,6 +88,9 @@ while running:
                 render()
         if keys[pygame.K_LEFT]:
             coords = (coords[0] - 0.5, coords[1])
+            render()
+        if event.type == pygame.MOUSEBUTTONUP:
+            get_click(event.pos)
             render()
     pygame.display.flip()
 pygame.quit()
