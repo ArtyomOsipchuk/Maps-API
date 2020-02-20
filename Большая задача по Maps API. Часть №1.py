@@ -1,14 +1,31 @@
 import os
 import sys
-
+import requests
 import pygame
 import requests
+import PyQt5
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QPushButton, QMainWindow, QInputDialog, QLineEdit, \
+    QFileDialog, QTextEdit
 
 
-def get_click(coords):
-    global l
-    print(coords)
-    x, y = coords
+class Searcher(QMainWindow):
+    def __init__(self):
+        app = QApplication(sys.argv)
+        self.address = ''
+        super().__init__()
+        self.setGeometry(300, 300, 300, 300)
+        self.show()
+        i, okBtnPressed = QInputDialog.getText(self, "Поиск",
+                                               "Введите место")
+        if okBtnPressed:
+            self.address = i
+
+
+def get_click(coo):
+    global l, address, coords, coordspt
+    print(coo)
+    x, y = coo
     if 0 < y < 25:
         if 450 < x < 500:
             l = 'map'
@@ -16,12 +33,28 @@ def get_click(coords):
             l = 'sat'
         if 550 < x < 600:
             l = 'sat,skl'
+    if 0 < y < 30 and 0 < x < 60:
+        a = Searcher()
+        address = a.address
+        geocoder_request = f"http://geocode-maps.yandex.ru/1.x/?apikey=40d1649f-0493-4b70-98ba-98533de7710b&geocode={address}&format=json"
+        response = requests.get(geocoder_request)
+        if response:
+            json_response = response.json()
+            toponym = json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
+            toponym_coodrinates = toponym["Point"]["pos"]
+            a, b = toponym_coodrinates.split()
+            coords = (float(a), float(b))
+            coordspt = (float(a), float(b))
+        else:
+            print("Ошибка выполнения запроса:")
+            print(geocoder_request)
+            print("Http статус:", response.status_code, "(", response.reason, ")")
 
 
 def render():
-    global spn, coords, map_file, l
+    global spn, coords, map_file, l, coordspt
     response = None
-    map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(str(i) for i in coords)}&spn={','.join(str(i) for i in spn)}&l={l}"
+    map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(str(i) for i in coords)}&pt={','.join(str(i) for i in coordspt)}&spn={','.join(str(i) for i in spn)}&l={l}"
     response = requests.get(map_request)
 
     if not response:
@@ -29,15 +62,12 @@ def render():
         print(map_request)
         print("Http статус:", response.status_code, "(", response.reason, ")")
         sys.exit(1)
-
-    # Запишем полученное изображение в файл.
     map_file = "map.png"
     with open(map_file, "wb") as file:
         file.write(response.content)
     screen = pygame.display.set_mode((600, 450))
-    # Рисуем картинку, загружаемую из только что созданного файла.
     screen.blit(pygame.image.load(map_file), (0, 0))
-    # Переключаем экран и ждем закрытия окна.
+    # смена режимов
     pygame.draw.rect(screen, pygame.Color(0, 0, 0), ((450, 0), (600, 25)), 0)
     pygame.draw.rect(screen, pygame.Color(255, 255, 255), ((450, 0), (500, 25)), 1)
     pygame.draw.rect(screen, pygame.Color(255, 255, 255), ((500, 0), (550, 25)), 1)
@@ -52,12 +82,18 @@ def render():
     font = pygame.font.Font(None, 25)
     text = font.render("hyb", 1, (255, 255, 255))
     screen.blit(text, (555, 5))
-    screen.convert_alpha()
+    # поиск
+    pygame.draw.rect(screen, pygame.Color(0, 0, 0), ((0, 0), (60, 30)), 0)
+    pygame.draw.rect(screen, pygame.Color(255, 255, 255), ((0, 0), (60, 30)), 1)
+    font = pygame.font.Font(None, 25)
+    text = font.render("search", 1, (255, 255, 255))
+    screen.blit(text, (2, 9))
     pygame.display.flip()
 
 
 spn = (0.002, 0.002)
 coords = (37.530887, 55.703118)
+coordspt = (37.530887, 55.703118)
 l = 'map'
 render()
 pygame.init()
