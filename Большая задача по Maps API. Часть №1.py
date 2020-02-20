@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QPushButton, QMainWin
 
 class Searcher(QMainWindow):
     def __init__(self):
+        global coordspt
         app = QApplication(sys.argv)
         self.address = ''
         super().__init__()
@@ -20,6 +21,8 @@ class Searcher(QMainWindow):
                                                "Введите место")
         if okBtnPressed:
             self.address = i
+        else:
+            self.address = coordspt
 
 
 def get_click(coo):
@@ -33,7 +36,7 @@ def get_click(coo):
             l = 'sat'
         if 550 < x < 600:
             l = 'sat,skl'
-    if 0 < y < 30 and 0 < x < 60:
+    elif 0 < y < 30 and 0 < x < 60:
         a = Searcher()
         address = a.address
         geocoder_request = f"http://geocode-maps.yandex.ru/1.x/?apikey=40d1649f-0493-4b70-98ba-98533de7710b&geocode={address}&format=json"
@@ -49,17 +52,25 @@ def get_click(coo):
             print("Ошибка выполнения запроса:")
             print(geocoder_request)
             print("Http статус:", response.status_code, "(", response.reason, ")")
+    elif 40 < y < 70 and 0 < x < 60:
+        coordspt = 0
 
 
 def render():
     global spn, coords, map_file, l, coordspt
-    response = None
-    map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(str(i) for i in coords)}&pt={','.join(str(i) for i in coordspt)}&spn={','.join(str(i) for i in spn)}&l={l}"
-    response = requests.get(map_request)
-
+    api_server = 'http://static-maps.yandex.ru/1.x/?'
+    params = {
+        "ll": ','.join(str(i) for i in coords),
+        "spn": ','.join(str(i) for i in spn),
+        "l": l
+    }
+    if coordspt:
+        params['pt'] = ','.join(str(i) for i in coordspt)
+    response = requests.get(api_server, params=params)
+    # map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(str(i) for i in coords)}&pt={','.join(str(i) for i in coordspt)}&spn={','.join(str(i) for i in spn)}&l={l}"
+    # response = requests.get(map_request)
     if not response:
         print("Ошибка выполнения запроса:")
-        print(map_request)
         print("Http статус:", response.status_code, "(", response.reason, ")")
         sys.exit(1)
     map_file = "map.png"
@@ -88,6 +99,12 @@ def render():
     font = pygame.font.Font(None, 25)
     text = font.render("search", 1, (255, 255, 255))
     screen.blit(text, (2, 9))
+    # сброс
+    pygame.draw.rect(screen, pygame.Color(0, 0, 0), ((0, 40), (60, 45)), 0)
+    pygame.draw.rect(screen, pygame.Color(255, 255, 255), ((0, 40), (60, 45)), 1)
+    font = pygame.font.Font(None, 25)
+    text = font.render("reset", 1, (255, 255, 255))
+    screen.blit(text, (2, 42))
     pygame.display.flip()
 
 
